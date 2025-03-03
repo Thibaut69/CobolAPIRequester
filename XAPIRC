@@ -1,0 +1,362 @@
+       IDENTIFICATION DIVISION.                                         XAPIRC
+       PROGRAM-ID.  XAPIRC.                                             XAPIRC
+      *AUTHOR.         T. CORDIER.                                      XAPIRC
+      *DATE-COMPILED.   04/11/24.                                       XAPIRC
+       ENVIRONMENT DIVISION.                                            XAPIRC
+       CONFIGURATION SECTION.                                           XAPIRC
+       SOURCE-COMPUTER. IBM-370.                                        XAPIRC
+       OBJECT-COMPUTER. IBM-370.                                        XAPIRC
+       DATA DIVISION.                                                   XAPIRC
+       WORKING-STORAGE SECTION.                                         XAPIRC
+
+       01   VARIABLES-CONDITIONNELLES.
+          05  FT      PICTURE X VALUE '0'.
+       01  SESSION-TOKEN          PIC  9(18) COMP VALUE ZEROES.
+
+       01  URL-SCHEME             PIC S9(08) COMP VALUE ZEROES.
+       01  URL-PORT               PIC S9(08) COMP VALUE 80.
+       01  URL-HOST-NAME-LENGTH   PIC S9(08) COMP VALUE ZEROES.
+       01  WEB-STATUS-CODE        PIC S9(04) COMP VALUE 00.
+       01  WEB-STATUS-TEXT-LENGTH PIC S9(08) COMP VALUE 256.
+       01  WEB-STATUS-TEXT        PIC  X(256) VALUE SPACES.
+
+       01  WEB-STATUS-ABSTIME-LENGTH   PIC S9(08) COMP VALUE 15.
+       01  WEB-STATUS-ABSTIME     PIC  9(15) VALUE ZEROES.
+       01  WEB-METHOD             PIC S9(08) COMP VALUE ZEROES.
+       01  WEB-PATH-LENGTH        PIC S9(08) COMP VALUE ZEROES.
+       01  CLIENT-CONVERT         PIC S9(08) COMP VALUE ZEROES.
+       01  WEB-AUTH               PIC S9(08) COMP VALUE ZEROES.
+
+       01  CONVERSE-LENGTH        PIC S9(08) COMP VALUE 3200000.
+       01  CONVERSE-RESPONSE      PIC  X(3200000) VALUE SPACES.
+
+       01  WS-COUNT PIC 9(5) VALUE 0.
+       01  WS-ACTUAL-LENGTH PIC 9(3) VALUE 0.
+       01  W-URI-LENGTH       PIC 9(5).
+       01  W-USER-LENGTH      PIC S9(08) COMP VALUE ZEROES.
+       01  W-PASSWORD-LENGTH  PIC S9(08) COMP VALUE ZEROES.
+       01  W-SERVICE-LENGTH   PIC 9(5).
+       01  W-MESSAGE-LENGTH   PIC 9(5).
+       01  W-AUTH-LENGTH      PIC 9(5).
+       01  W-HEADER-AUTH-LENGTH PIC 99 VALUE 13.
+
+       01  RECEIVE-LENGTH         PIC S9(08) COMP VALUE 3200000.
+       01  MAXIMUM-LENGTH         PIC S9(08) COMP VALUE 3200000.
+
+       01  W-HEADER             PIC X(20).
+       01  W-HEADER-LEN         PIC S9(08) COMP VALUE ZEROES.
+       01  W-HEADER-VALUE       PIC X(1000).
+       01  W-HEADER-VALUE-LEN   PIC S9(08) COMP VALUE ZEROES.
+
+       LINKAGE SECTION.
+      *****************
+       01               DFHCOMMAREA PIC X.                              ASSPGM
+           COPY DFHEIBLK SUPPRESS REPLACING EIBLK BY DFHEIBLK.          ASSPGM
+      *                                                                 ASSPGM
+       01   XS-COMMAREA.
+         05 DFH-INPUT.
+            10 DFH-METHOD   PIC X(5). *> GET PUT POST PATCH
+            10 DFH-SCHEME   PIC X(5).
+            10 DFH-URI      PIC X(100).
+            10 DFH-PORT     PIC 9(5).
+            10 DFH-SERVICE  PIC X(100).
+            10 DFH-USER     PIC X(8).
+            10 DFH-PASSWORD PIC X(30).
+            10 DFH-AUTH     PIC X(1000).
+            10 DFH-MEDIA    PIC X(56).
+            10 DFH-MESSAGE  PIC X(3000).
+         05 DFH-OUTPUT.
+            10 DFH-CODE-RETOUR-HTTP PIC 999.
+            10 DFH-REPONSE          PIC X(3200000).
+       PROCEDURE DIVISION USING DFHEIBLK DFHCOMMAREA XS-COMMAREA.
+      *N01.      NOTE *************************************.            XAPIRC
+      *               *                                   *             XAPIRC
+      *               *INITIALISATIONS                    *             XAPIRC
+      *               *                                   *             XAPIRC
+      *               *************************************.            XAPIRC
+       F01.      EXIT.
+       F01-FN.   EXIT.
+      *          NOTE *  DEBUT ITERATION DU PROGRAMME     *.            XAPIRC
+       F05.           EXIT.
+      *N18.      NOTE *************************************.
+      *               *                                   *
+      *               *TRAITEMENT PRINCIPAL               *
+      *               *                                   *
+      *               *************************************.
+       F18.           EXIT.                                             lv05
+      *N18BA.    NOTE *INITIALISATIONS                    *.
+       F18BA.                                                           lv10
+      *---------------
+           INSPECT FUNCTION REVERSE(DFH-URI) TALLYING WS-COUNT
+           FOR LEADING SPACE.
+
+           SUBTRACT WS-COUNT FROM LENGTH OF DFH-URI
+           GIVING W-URI-LENGTH.
+           DISPLAY 'DFH-URI longueur : ' W-URI-LENGTH.
+
+           MOVE ZEROES TO WS-COUNT.
+
+           INSPECT FUNCTION REVERSE(DFH-USER) TALLYING WS-COUNT
+           FOR LEADING SPACE.
+
+           SUBTRACT WS-COUNT FROM LENGTH OF DFH-USER
+           GIVING W-USER-LENGTH.
+           DISPLAY 'DFH-USER longueur : ' W-USER-LENGTH.
+
+           MOVE ZEROES TO WS-COUNT.
+
+           INSPECT FUNCTION REVERSE(DFH-PASSWORD) TALLYING WS-COUNT
+           FOR LEADING SPACE.
+
+           SUBTRACT WS-COUNT FROM LENGTH OF DFH-PASSWORD
+           GIVING W-PASSWORD-LENGTH.
+           DISPLAY 'DFH-PASSWORD longueur : ' W-PASSWORD-LENGTH.
+
+           MOVE ZEROES TO WS-COUNT.
+
+           INSPECT FUNCTION REVERSE(DFH-SERVICE) TALLYING WS-COUNT
+           FOR LEADING SPACE.
+
+           SUBTRACT WS-COUNT FROM LENGTH OF DFH-SERVICE
+           GIVING W-SERVICE-LENGTH.
+           DISPLAY 'DFH-SERVICE longueur : ' W-SERVICE-LENGTH.
+
+           MOVE ZEROES TO WS-COUNT.
+
+           INSPECT FUNCTION REVERSE(DFH-MESSAGE) TALLYING WS-COUNT
+           FOR LEADING SPACE.
+
+           SUBTRACT WS-COUNT FROM LENGTH OF DFH-MESSAGE
+           GIVING RECEIVE-LENGTH.
+
+           IF RECEIVE-LENGTH = LENGTH OF DFH-MESSAGE
+              MOVE ZEROES TO WS-COUNT
+
+              INSPECT FUNCTION REVERSE(DFH-MESSAGE) TALLYING WS-COUNT
+              FOR LEADING LOW-VALUE
+
+              SUBTRACT WS-COUNT FROM LENGTH OF DFH-MESSAGE
+              GIVING RECEIVE-LENGTH
+           END-IF.
+
+           DISPLAY "LENGTH OF DFH-MESSAGE : " LENGTH OF DFH-MESSAGE.
+
+           DISPLAY 'DFH-MESSAGE longueur : ' RECEIVE-LENGTH.
+
+      *    MOVE 630  TO RECEIVE-LENGTH.
+      *     DISPLAY 'DFH-MESSAGE longueur : ' RECEIVE-LENGTH.
+           MOVE ZEROES TO WS-COUNT
+
+           INSPECT FUNCTION REVERSE(DFH-AUTH) TALLYING WS-COUNT
+           FOR LEADING SPACE.
+
+           SUBTRACT WS-COUNT FROM LENGTH OF DFH-AUTH
+           GIVING W-AUTH-LENGTH.
+
+           IF W-AUTH-LENGTH = LENGTH OF DFH-AUTH
+              MOVE ZEROES TO WS-COUNT
+
+              INSPECT FUNCTION REVERSE(DFH-AUTH) TALLYING WS-COUNT
+              FOR LEADING LOW-VALUE
+
+              SUBTRACT WS-COUNT FROM LENGTH OF DFH-AUTH
+              GIVING W-AUTH-LENGTH
+           END-IF.
+
+           INSPECT DFH-MEDIA REPLACING ALL SPACE BY LOW-VALUE.
+
+           Display "***********************************************".
+           Display "** HTTP Web Enablement Toolkit Sample Begins **".
+           Display "DFH-INPUT".
+           Display "DFH-METHOD   : " DFH-METHOD.
+           Display "DFH-SCHEME   : " DFH-SCHEME.
+           Display "DFH-URI      : " DFH-URI.
+           Display "DFH-PORT     : " DFH-PORT.
+           Display "DFH-SERVICE  : " DFH-SERVICE.
+           Display "DFH-USER     : " DFH-USER.
+           Display "DFH-PASSWORD : " DFH-PASSWORD.
+           Display "DFH-MEDIA    : " DFH-MEDIA.
+           Display "DFH-MESSAGE  : " DFH-MESSAGE.
+
+
+           IF  DFH-SCHEME EQUAL 'HTTPS' or 'https'
+               MOVE DFHVALUE(HTTPS)  TO URL-SCHEME
+           ELSE
+               MOVE DFHVALUE(HTTP)   TO URL-SCHEME
+           END-IF.
+
+           MOVE DFH-PORT TO URL-PORT.
+           MOVE W-URI-LENGTH TO URL-HOST-NAME-LENGTH.
+           DISPLAY "WEB OPEN"
+           DISPLAY "DFH-URI : " DFH-URI
+           EXEC CICS WEB OPEN
+                HOST         (DFH-URI)
+                HOSTLENGTH   (URL-HOST-NAME-LENGTH)
+                PORTNUMBER   (URL-PORT)
+                SCHEME       (URL-SCHEME)
+                SESSTOKEN    (SESSION-TOKEN)
+                NOHANDLE
+           END-EXEC.
+
+           IF EIBRESP NOT = DFHRESP(NORMAL)
+              DISPLAY "WEB OPEN ERROR"
+              DISPLAY "EIBRESP : " EIBRESP
+              DISPLAY "EIBRESP2 : " EIBRESP2
+              GOBACK
+           END-IF.
+
+           DISPLAY "WEB OPEN OK"
+
+           EVALUATE DFH-METHOD
+                 WHEN "GET"
+                   MOVE DFHVALUE(GET)    TO WEB-METHOD
+                 WHEN "PUT"
+                   MOVE DFHVALUE(PUT)    TO WEB-METHOD
+                 WHEN "POST"
+                   MOVE DFHVALUE(POST)   TO WEB-METHOD
+                 WHEN "PATCH"
+                   MOVE DFHVALUE(PATCH)  TO WEB-METHOD
+                 WHEN OTHER
+                   Display "DFH-METHOD non prevu, GET par defaut"
+                   MOVE DFHVALUE(GET)  TO WEB-METHOD
+           END-EVALUATE.
+
+           MOVE W-SERVICE-LENGTH TO WEB-PATH-LENGTH
+
+           MOVE "Authorization"              TO W-HEADER
+           MOVE W-HEADER-AUTH-LENGTH         TO W-HEADER-LEN
+           MOVE DFH-AUTH                     TO W-HEADER-VALUE
+           MOVE W-AUTH-LENGTH                TO W-HEADER-VALUE-LEN
+
+           DISPLAY "WEB WRITE Authorization"
+           DISPLAY "W-HEADER            : " W-HEADER
+           DISPLAY "W-HEADER-LEN        : " W-HEADER-LEN
+           DISPLAY "W-HEADER-VALUE      : " W-HEADER-VALUE
+           DISPLAY "W-HEADER-VALUE-LEN  : " W-HEADER-VALUE-LEN
+
+           EXEC CICS WEB WRITE
+                  HTTPHEADER   (W-HEADER)
+                  NAMELENGTH   (W-HEADER-LEN)
+                  SESSTOKEN    (SESSION-TOKEN)
+                  VALUE        (W-HEADER-VALUE)
+                  VALUELENGTH  (W-HEADER-VALUE-LEN)
+           END-EXEC
+
+           IF EIBRESP NOT = DFHRESP(NORMAL)
+             DISPLAY "WEB WRITE ERROR"
+             DISPLAY "EIBRESP             : " EIBRESP
+             DISPLAY "EIBRESP2            : " EIBRESP2
+             DISPLAY "W-HEADER            : " W-HEADER
+             DISPLAY "W-HEADER-LEN        : " W-HEADER-LEN
+             DISPLAY "W-HEADER-VALUE      : " W-HEADER-VALUE
+             DISPLAY "W-HEADER-VALUE-LEN  : " W-HEADER-VALUE-LEN
+             GOBACK
+           END-IF
+
+           DISPLAY  "WEB CONVERSE"
+           IF DFH-METHOD = "GET"
+               EXEC CICS WEB CONVERSE
+                    SESSTOKEN     (SESSION-TOKEN)
+                    METHOD        (WEB-METHOD)
+                    MEDIATYPE     (DFH-MEDIA)
+                    PATH          (DFH-SERVICE)
+                    PATHLENGTH    (WEB-PATH-LENGTH)
+                    INTO          (CONVERSE-RESPONSE)
+                    TOLENGTH      (CONVERSE-LENGTH)
+                    STATUSCODE    (WEB-STATUS-CODE)
+                    STATUSLEN     (WEB-STATUS-ABSTIME-LENGTH)
+                    STATUSTEXT    (WEB-STATUS-ABSTIME)
+                    NOHANDLE
+               END-EXEC
+           ELSE
+               Display "DFH-MEDIA : " DFH-MEDIA
+               IF DFH-MEDIA(1:8) EQUAL "text/xml"
+      *           Display "cliconvert"
+                 MOVE DFHVALUE(CLICONVERT)      TO CLIENT-CONVERT
+               ELSE
+      *           Display "NOcliconvert"
+                 MOVE DFHVALUE(NOCLICONVERT)    TO CLIENT-CONVERT
+               END-IF
+
+      *        MOVE DFHVALUE(BASICAUTH) TO WEB-AUTH
+               DISPLAY "DFH-SERVICE     : " DFH-SERVICE
+               DISPLAY "WEB-PATH-LENGTH : " WEB-PATH-LENGTH
+               DISPLAY "DFH-MESSAGE     : " DFH-MESSAGE
+
+               EXEC CICS WEB CONVERSE
+                        SESSTOKEN  (SESSION-TOKEN)
+                        PATH       (DFH-SERVICE)
+                        PATHLENGTH (WEB-PATH-LENGTH)
+                        METHOD     (WEB-METHOD)
+                        MEDIATYPE  (DFH-MEDIA)
+                        FROM       (DFH-MESSAGE)
+                        FROMLENGTH (RECEIVE-LENGTH)
+                        INTO       (CONVERSE-RESPONSE)
+                        TOLENGTH   (CONVERSE-LENGTH)
+                        MAXLENGTH  (CONVERSE-LENGTH)
+                        STATUSCODE (WEB-STATUS-CODE)
+                        STATUSLEN  (WEB-STATUS-TEXT-LENGTH)
+                        STATUSTEXT (WEB-STATUS-TEXT)
+      *                 CHARACTERSET('UTF-8')
+                        CLIENTCONV (CLIENT-CONVERT)
+      *                  AUTHENTICATE(WEB-AUTH)
+      *                  USERNAME(DFH-USER)
+      *                  USERNAMELEN(W-USER-LENGTH)
+      *                  PASSWORD(DFH-PASSWORD)
+      *                  PASSWORDLEN(W-PASSWORD-LENGTH)
+      *                  NOHANDLE
+                END-EXEC
+
+                IF EIBRESP = DFHRESP(NORMAL)
+                    DISPLAY " WEB-STATUS-CODE : " WEB-STATUS-CODE
+                    DISPLAY " WEB-STATUS-TEXT : " WEB-STATUS-TEXT
+                END-IF
+           END-IF.
+
+
+
+           IF EIBRESP NOT = DFHRESP(NORMAL)
+              DISPLAY "WEB CONVERSE ERROR"
+              DISPLAY "EIBRESP  : " EIBRESP
+              DISPLAY "EIBRESP2 : " EIBRESP2
+              GOBACK
+           ELSE
+              DISPLAY "CONVERSE-RESPONSE : " CONVERSE-RESPONSE
+           END-IF.
+           MOVE SPACES             TO DFH-REPONSE.
+           MOVE CONVERSE-RESPONSE  TO DFH-REPONSE.
+           MOVE WEB-STATUS-CODE    TO DFH-CODE-RETOUR-HTTP.
+
+           DISPLAY  "WEB CLOSE".
+
+           EXEC CICS WEB CLOSE
+                SESSTOKEN( SESSION-TOKEN )
+                NOHANDLE
+           END-EXEC.
+
+           IF EIBRESP NOT = DFHRESP(NORMAL)
+              DISPLAY "WEB CLOSE ERROR"
+              DISPLAY "EIBRESP  : " EIBRESP
+              DISPLAY "EIBRESP2 : " EIBRESP2
+              GOBACK
+           END-IF.
+       F18BA-FN. EXIT.
+      *N18JE.    NOTE *RETOUR PROGRAMME APPELANT          *.
+       F18JE.                                                           lv10
+      *-------------------------
+           MOVE ALL    '1' TO FT
+      *!GFT id=56
+           MOVE                    ALL '1' TO FT GO TO F20.             000056
+       F18JE-FN. EXIT.
+       F18-FN.   EXIT.
+      *N20.      NOTE *************************************.            XAPIRC
+      *               *                                   *             XAPIRC
+      *               *FIN DE TRAITEMENT                  *             XAPIRC
+      *               *                                   *             XAPIRC
+      *               *************************************.            XAPIRC
+       F20.      IF FT =            ALL '1'
+                 NEXT SENTENCE ELSE GO TO     F20-FN.                   XAPIRC
+       F2099.     GOBACK.
+       F2099-FN. EXIT.
+       F20-FN.   EXIT.
+       F9099-ITER-FN.  GO TO F05.
