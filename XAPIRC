@@ -50,10 +50,7 @@
 
        LINKAGE SECTION.
       *****************
-       01               DFHCOMMAREA PIC X.                              ASSPGM
-           COPY DFHEIBLK SUPPRESS REPLACING EIBLK BY DFHEIBLK.          ASSPGM
-      *                                                                 ASSPGM
-       01   XS-COMMAREA.
+       01   W-COMMAREA.
          05 DFH-INPUT.
             10 DFH-METHOD   PIC X(5). *> GET PUT POST PATCH
             10 DFH-SCHEME   PIC X(5).
@@ -139,12 +136,6 @@
               GIVING RECEIVE-LENGTH
            END-IF.
 
-           DISPLAY "LENGTH OF DFH-MESSAGE : " LENGTH OF DFH-MESSAGE.
-
-           DISPLAY 'DFH-MESSAGE longueur : ' RECEIVE-LENGTH.
-
-      *    MOVE 630  TO RECEIVE-LENGTH.
-      *     DISPLAY 'DFH-MESSAGE longueur : ' RECEIVE-LENGTH.
            MOVE ZEROES TO WS-COUNT
 
            INSPECT FUNCTION REVERSE(DFH-AUTH) TALLYING WS-COUNT
@@ -165,20 +156,7 @@
 
            INSPECT DFH-MEDIA REPLACING ALL SPACE BY LOW-VALUE.
 
-           Display "***********************************************".
-           Display "** HTTP Web Enablement Toolkit Sample Begins **".
-           Display "DFH-INPUT".
-           Display "DFH-METHOD   : " DFH-METHOD.
-           Display "DFH-SCHEME   : " DFH-SCHEME.
-           Display "DFH-URI      : " DFH-URI.
-           Display "DFH-PORT     : " DFH-PORT.
-           Display "DFH-SERVICE  : " DFH-SERVICE.
-           Display "DFH-USER     : " DFH-USER.
-           Display "DFH-PASSWORD : " DFH-PASSWORD.
-           Display "DFH-MEDIA    : " DFH-MEDIA.
-           Display "DFH-MESSAGE  : " DFH-MESSAGE.
-
-
+        
            IF  DFH-SCHEME EQUAL 'HTTPS' or 'https'
                MOVE DFHVALUE(HTTPS)  TO URL-SCHEME
            ELSE
@@ -187,8 +165,6 @@
 
            MOVE DFH-PORT TO URL-PORT.
            MOVE W-URI-LENGTH TO URL-HOST-NAME-LENGTH.
-           DISPLAY "WEB OPEN"
-           DISPLAY "DFH-URI : " DFH-URI
            EXEC CICS WEB OPEN
                 HOST         (DFH-URI)
                 HOSTLENGTH   (URL-HOST-NAME-LENGTH)
@@ -228,12 +204,6 @@
            MOVE DFH-AUTH                     TO W-HEADER-VALUE
            MOVE W-AUTH-LENGTH                TO W-HEADER-VALUE-LEN
 
-           DISPLAY "WEB WRITE Authorization"
-           DISPLAY "W-HEADER            : " W-HEADER
-           DISPLAY "W-HEADER-LEN        : " W-HEADER-LEN
-           DISPLAY "W-HEADER-VALUE      : " W-HEADER-VALUE
-           DISPLAY "W-HEADER-VALUE-LEN  : " W-HEADER-VALUE-LEN
-
            EXEC CICS WEB WRITE
                   HTTPHEADER   (W-HEADER)
                   NAMELENGTH   (W-HEADER-LEN)
@@ -271,14 +241,11 @@
            ELSE
                Display "DFH-MEDIA : " DFH-MEDIA
                IF DFH-MEDIA(1:8) EQUAL "text/xml"
-      *           Display "cliconvert"
                  MOVE DFHVALUE(CLICONVERT)      TO CLIENT-CONVERT
                ELSE
-      *           Display "NOcliconvert"
                  MOVE DFHVALUE(NOCLICONVERT)    TO CLIENT-CONVERT
                END-IF
 
-      *        MOVE DFHVALUE(BASICAUTH) TO WEB-AUTH
                DISPLAY "DFH-SERVICE     : " DFH-SERVICE
                DISPLAY "WEB-PATH-LENGTH : " WEB-PATH-LENGTH
                DISPLAY "DFH-MESSAGE     : " DFH-MESSAGE
@@ -297,14 +264,7 @@
                         STATUSCODE (WEB-STATUS-CODE)
                         STATUSLEN  (WEB-STATUS-TEXT-LENGTH)
                         STATUSTEXT (WEB-STATUS-TEXT)
-      *                 CHARACTERSET('UTF-8')
                         CLIENTCONV (CLIENT-CONVERT)
-      *                  AUTHENTICATE(WEB-AUTH)
-      *                  USERNAME(DFH-USER)
-      *                  USERNAMELEN(W-USER-LENGTH)
-      *                  PASSWORD(DFH-PASSWORD)
-      *                  PASSWORDLEN(W-PASSWORD-LENGTH)
-      *                  NOHANDLE
                 END-EXEC
 
                 IF EIBRESP = DFHRESP(NORMAL)
