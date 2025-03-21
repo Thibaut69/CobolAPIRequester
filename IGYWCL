@@ -1,0 +1,66 @@
+//IGYWCL PROC  LNGPRFX='IGY.V6R3M0',
+//             LIBPRFX='CEE'
+//*                                                                     00004000
+//********************************************************************* 00005000
+//*                                                                   * 00006000
+//*  IBM Enterprise COBOL for z/OS                                    * 00007000
+//*               Version 6 Release 3 Modification 0                  * 00008000
+//*                                                                   * 00009000
+//*  LICENSED MATERIALS - PROPERTY OF IBM.                            * 00010000
+//*                                                                   * 00011000
+//*  5655-EC6 COPYRIGHT IBM CORP. 1983, 2019                          * 00012000
+//*                                                                   * 00013000
+//*  US GOVERNMENT USERS RESTRICTED RIGHTS - USE,                     * 00014000
+//*  DUPLICATION OR DISCLOSURE RESTRICTED BY GSA                      * 00015000
+//*  ADP SCHEDULE CONTRACT WITH IBM CORP.                             * 00016000
+//*                                                                   * 00017000
+//********************************************************************* 00018000
+//*                                                                     00019000
+//*  COMPILE AND LINK EDIT A COBOL PROGRAM                              00020000
+//*                                                                     00021000
+//*  PARAMETER  DEFAULT VALUE    USAGE                                  00022000
+//*   LNGPRFX   IGY.V6R3M0       PREFIX FOR LANGUAGE DATA SET NAMES     00023000
+//*   LIBPRFX   CEE              PREFIX FOR LIBRARY DATA SET NAMES      00024000
+//*   PGMLIB    &&GOSET          DATA SET NAME FOR LOAD MODULE          00025000
+//*   GOPGM     GO               MEMBER NAME FOR LOAD MODULE            00026000
+//*                                                                     00027000
+//*  CALLER MUST SUPPLY //COBOL.SYSIN DD ...                            00028000
+//*                                                                     00029000
+//*  CALLER MUST ALSO SUPPLY //COBOL.SYSLIB DD ... for COPY statements  00030000
+//*                                                                     00031000
+//*  NOTE:  SYSUT* datasets must be single-volume datasets              00032000
+//*                                                                     00033000
+//COBOL  EXEC PGM=IGYCRCTL,REGION=0M
+//STEPLIB  DD  DISP=SHR,DSN=ZP08346.COBV610.SIGYCOMP
+//*STEPLIB  DD  DISP=SHR,DSN=IGY.V6R3M0.SIGYCOMP
+//         DD  DSNAME=&LNGPRFX..SIGYCOMP,DISP=SHR
+//         DD  DSNAME=&LIBPRFX..SCEERUN,DISP=SHR
+//         DD  DSNAME=&LIBPRFX..SCEERUN2,DISP=SHR
+//SYSPRINT DD  SYSOUT=*
+//SYSLIB   DD DSN=&MACLIB,DISP=SHR
+//SYSLIN   DD DSN=&&LOADSET,DISP=(MOD,PASS),
+//         UNIT=SYSSID,SPACE=(CYL,(5,1))
+//SYSUT1   DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT2   DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT3   DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT4   DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT5   DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT6   DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT7   DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT8   DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT9   DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT10  DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT11  DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT12  DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT13  DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT14  DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSUT15  DD UNIT=VIO,SPACE=(CYL,(1,1))
+//SYSMDECK DD UNIT=VIO,SPACE=(CYL,(1,1))
+//LKED   EXEC PGM=IEWBLINK,COND=(8,LT,COBOL),REGION=0M
+//SYSLIB       DD DSN=&CSSLIB,DISP=SHR
+//             DD DSN=&LIBPRFX..SCEELKED,DISP=SHR
+//             DD DSN=&LIBPRFX..SCEELKEX,DISP=SHR
+//SYSPRINT DD  SYSOUT=*
+//SYSLIN   DD  DSNAME=&&LOADSET,DISP=(OLD,DELETE)
+//         DD  DDNAME=SYSIN
+//SYSLMOD  DD  DSNAME=&LOAD(&SRC),DISP=SHR
