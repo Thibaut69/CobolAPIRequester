@@ -7,6 +7,7 @@ XAPIRC can be compile as any Cobol CICS program.
 
 XAPIRB need some specific compile option like NODYN param to be compiled with static programs.
 Its JCL is provided in the first lines of the member SYS1.SAMPLIB(HWTHXCB1)
+I provide the COMPXAPI JCL, which use the PROC IGYWCL to compile XAPIRB.
 
 <h1>Call samples</h1>
 
