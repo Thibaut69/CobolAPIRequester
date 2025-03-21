@@ -13,6 +13,11 @@ I provide the COMPXAPI JCL, which use the PROC IGYWCL to compile XAPIRB.
 
 <h2>To perform a call in a Cobol batch</h2>
 
+ATTENTION : In the JCL that execute the main program that call XAPIRB, you have to add this DD card : 
+
+   ![image](https://github.com/user-attachments/assets/bbb51e8a-307e-4e2f-9880-aaf482a9f8a1)
+
+
            MOVE "POST"                   TO W-METHOD.
            MOVE "https://mydomain.com"   TO W-URI.
            MOVE 443                      TO W-PORT.
