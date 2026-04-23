@@ -3258,6 +3258,7 @@
       *       Display "** (End excerpt)"
               Set J up by 1
               MOVE WS-BODY-LENGTH TO W-BODY-RESP-POS
+              ADD 1 TO W-BODY-RESP-POS
            End-Perform.
 
       *    Display "RCVX : "  recv-body-response.
